@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-const proxyPort = process.env.PROXY_PORT;
-const proxyHost = process.env.PROXY_HOST;
+// Получаем переменные окружения с префиксом REACT_APP_
+const proxyPort = process.env.REACT_APP_PROXY_PORT;
+const proxyHost = process.env.REACT_APP_PROXY_HOST;
 const jiraUrl = `http://${proxyHost}:${proxyPort}/api`;
 const username = process.env.REACT_APP_JIRA_USERNAME;
 const password = process.env.REACT_APP_JIRA_PASSWORD;

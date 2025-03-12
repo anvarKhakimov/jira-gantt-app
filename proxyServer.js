@@ -6,9 +6,20 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = express();
-const PROXY_PORT = process.env.PROXY_PORT;
-const PROXY_HOST = process.env.PROXY_HOST;
-const JIRA_URL = process.env.JIRA_URL;
+const PROXY_PORT = process.env.REACT_APP_PROXY_PORT;
+const PROXY_HOST = process.env.REACT_APP_PROXY_HOST;
+const JIRA_URL = process.env.REACT_APP_JIRA_URL;
+
+console.log('Настройки прокси-сервера:');
+console.log(`PROXY_PORT: ${PROXY_PORT}`);
+console.log(`PROXY_HOST: ${PROXY_HOST}`);
+console.log(`JIRA_URL: ${JIRA_URL}`);
+
+// Проверяем, что все необходимые переменные окружения определены
+if (!JIRA_URL) {
+  console.error('Ошибка: JIRA_URL не указан в переменных окружения');
+  process.exit(1);
+}
 
 app.use('/api', (req, res, next) => {
   console.log('\nReceived request:', req.method, req.url);
@@ -39,9 +50,6 @@ app.use('/api', createProxyMiddleware({
     proxyRes.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept, Authorization';
     console.log('Response status code from target:', proxyRes.statusCode);
     console.log('Response headers from target:', proxyRes.headers);
-    proxyRes.on('data', (data) => {
-      console.log('Response data from target:', data.toString('utf-8'));
-    });
   },
   onError: (err, req, res) => {
     console.error('Proxy error:', err);
