@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { processBlockers } from './blockersProcessor';
 
 // Константы
 export const FINAL_STATUSES = ['Done', 'Closed', 'Resolved'];
@@ -121,16 +122,10 @@ export const getCompletionDate = (statusMovements) => {
 };
 
 // Основная функция обработки задачи
-export const processJiraIssue = (issue) => {
+export const processJiraIssue = (issue, issues) => {
   const statusMovements = extractStatusMovements(issue);
   const flagChanges = extractFlagChanges(issue);
   const statusDurations = calculateStatusDurations(statusMovements, issue.fields.created);
-  
-  const totalDuration = statusDurations.reduce((sum, status) => sum + parseFloat(status.duration), 0);
-  
-  const currentStatus = issue.fields.status.name;
-  const isCompleted = FINAL_STATUSES.includes(currentStatus);
-  const completionDate = isCompleted ? getCompletionDate(statusMovements) : null;
   
   // Извлекаем информацию о связях
   const links = [];
@@ -148,7 +143,11 @@ export const processJiraIssue = (issue) => {
           direction: 'outward',
           outwardIssue: {
             key: link.outwardIssue.key,
-            summary: link.outwardIssue.fields?.summary || 'Без названия'
+            summary: link.outwardIssue.fields?.summary || 'Без названия',
+            fields: {
+              customfield_31724: link.outwardIssue.fields?.customfield_31724,
+              customfield_38310: link.outwardIssue.fields?.customfield_38310
+            }
           }
         });
       } else if (isInward) {
@@ -157,7 +156,11 @@ export const processJiraIssue = (issue) => {
           direction: 'inward',
           inwardIssue: {
             key: link.inwardIssue.key,
-            summary: link.inwardIssue.fields?.summary || 'Без названия'
+            summary: link.inwardIssue.fields?.summary || 'Без названия',
+            fields: {
+              customfield_31724: link.inwardIssue.fields?.customfield_31724,
+              customfield_38310: link.inwardIssue.fields?.customfield_38310
+            }
           }
         });
       }
@@ -169,6 +172,20 @@ export const processJiraIssue = (issue) => {
   if (issue.fields.parent) {
     parent_key = issue.fields.parent.key;
   }
+  
+  // Обрабатываем блокеры с помощью новой функции
+  const { is_blocked, blocker_history, current_blockers } = processBlockers({
+    ...issue,
+    flag_changes: flagChanges,
+    links: links,
+    status_durations: statusDurations
+  }, issues);
+  
+  const totalDuration = statusDurations.reduce((sum, status) => sum + parseFloat(status.duration), 0);
+  
+  const currentStatus = issue.fields.status.name;
+  const isCompleted = FINAL_STATUSES.includes(currentStatus);
+  const completionDate = isCompleted ? getCompletionDate(statusMovements) : null;
   
   return {
     key: issue.key,
@@ -182,8 +199,10 @@ export const processJiraIssue = (issue) => {
     total_duration_formatted: formatDuration(totalDuration),
     is_completed: isCompleted,
     completion_date: completionDate,
-    is_blocked: isIssueBlocked(flagChanges),
+    is_blocked: is_blocked,
     links: links,
-    parent_key: parent_key
+    parent_key: parent_key,
+    blocker_history: blocker_history,
+    current_blockers: current_blockers
   };
 }; 

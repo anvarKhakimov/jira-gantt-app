@@ -11,27 +11,6 @@ const auth = {
   auth: { username, password },
 };
 
-export const fetchJiraData = async (mainIssueKey) => {
-  const jql = `
-  issue = ${mainIssueKey}
-  OR issueFunction in linkedIssuesOfRecursiveLimited("issue = ${mainIssueKey}", 1, "includes")
-  AND project in ("R&D :: Портфель проектов", "R&D :: Мобильные приложения", 
-  "R&D :: Development (HH)", "Маркетинг :: B2C", Design, 
-  "R&D :: Blocker", "DATA :: Analytics")
-`;
-
-  try {
-    const response = await axios.get(
-      `${jiraUrl}/rest/api/2/search?jql=${encodeURIComponent(jql)}&maxResults=300&expand=transitions,changelog,status`,
-      auth
-    );
-    return response.data.issues;
-  } catch (error) {
-    console.error('Error fetching Jira data:', error);
-    throw error;
-  }
-};
-
 export const fetchJiraStatuses = async (projectKey) => {
   try {
     const response = await axios.get(
@@ -51,8 +30,15 @@ export const fetchJiraIssues = async (params) => {
   if (params.issueKey) {
     // Запрос по конкретной задаче и её связям
     jql = `
-      issue = ${params.issueKey}
-      OR issueFunction in linkedIssuesOfRecursiveLimited("issue = ${params.issueKey}", ${params.depth || 1}, "includes")
+      (
+        issue = ${params.issueKey}
+        OR issueFunction in linkedIssuesOfRecursiveLimited("issue = ${params.issueKey}", ${params.depth || 2}, "includes")
+      )
+      AND project in (${params.projects.map(p => `"${p}"`).join(', ')})
+      OR issueFunction in linkedIssuesOf(
+        "issue = ${params.issueKey} OR issueFunction in linkedIssuesOfRecursiveLimited('issue = ${params.issueKey}', ${params.depth || 2}, 'includes')",
+        "blocked by"
+      )
     `;
   } else if (params.jql) {
     // Произвольный JQL запрос
@@ -64,10 +50,6 @@ export const fetchJiraIssues = async (params) => {
     if (params.filters) {
       jql += ` AND ${params.filters}`;
     }
-  }
-  
-  if (params.projects) {
-    jql += ` AND project in (${params.projects.map(p => `"${p}"`).join(', ')})`;
   }
   
   try {

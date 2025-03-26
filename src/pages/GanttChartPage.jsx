@@ -7,6 +7,7 @@ import { convertToGanttFormat, filterTasksByStatuses, createTestGanttData } from
 import CollapsibleJSON from '../components/CollapsibleJSON';
 import StatusFilter from '../components/StatusFilter';
 import GanttChart from '../components/GanttChart';
+import OptimizedJiraData from '../components/OptimizedJiraData';
 
 const GanttChartPage = () => {
   // Состояния
@@ -38,7 +39,7 @@ const GanttChartPage = () => {
       console.log('Исходные данные из Jira:', issues);
       
       // Обрабатываем каждую задачу
-      const processed = issues.map(processJiraIssue);
+      const processed = issues.map(issue => processJiraIssue(issue, issues));
       setProcessedIssues(processed);
       
       console.log('Обработанные задачи:', processed);
@@ -331,6 +332,12 @@ const GanttChartPage = () => {
               defaultCollapsed={true} 
             />
           </Paper>
+
+          {/* Оптимизированные данные */}
+          <OptimizedJiraData 
+            processedIssues={processedIssues}
+            hierarchy={issueHierarchy}
+          />
         </>
       )}
     </Box>
