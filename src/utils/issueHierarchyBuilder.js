@@ -126,6 +126,8 @@ export const buildIssueHierarchy = (issues) => {
 };
 
 // Функция для определения основной задачи, если она не указана явно
+// Закомментировано, так как функциональность автоопределения иерархии отключена
+/*
 export const determineMainIssue = (issues, mainIssueKey = null) => {
   if (mainIssueKey && issues.some(issue => issue.key === mainIssueKey)) {
     return mainIssueKey;
@@ -152,4 +154,10 @@ export const determineMainIssue = (issues, mainIssueKey = null) => {
   }
   
   return mostConnected ? mostConnected.key : (issues[0]?.key || null);
+};
+*/
+
+// Экспортируем пустую функцию, чтобы не менять импорты в других файлах
+export const determineMainIssue = (issues, mainIssueKey = null) => {
+  return mainIssueKey || (issues[0]?.key || null);
 }; 

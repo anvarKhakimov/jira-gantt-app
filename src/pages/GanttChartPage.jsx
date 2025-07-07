@@ -20,7 +20,6 @@ const GanttChartPage = () => {
   const [selectedStatuses, setSelectedStatuses] = useState([]);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [isStatusesLoading, setIsStatusesLoading] = useState(false);
-  const [autoDetectHierarchy, setAutoDetectHierarchy] = useState(true);
   const [showHierarchy, setShowHierarchy] = useState(true);
 
   // Загрузка данных из Jira
@@ -45,7 +44,7 @@ const GanttChartPage = () => {
       console.log('Обработанные задачи:', processed);
       
       // Определяем основную задачу, если не указана явно
-      const mainKey = autoDetectHierarchy ? determineMainIssue(processed, issueKey) : issueKey;
+      const mainKey = issueKey; // Всегда используем введенный ключ как главную задачу
       setMainIssueKey(mainKey);
       
       // Строим иерархию задач
@@ -65,7 +64,7 @@ const GanttChartPage = () => {
     } finally {
       setIsDataLoading(false);
     }
-  }, [autoDetectHierarchy]);
+  }, []);
 
   // Загрузка статусов из Jira
   const fetchStatuses = useCallback(async (issueKey) => {
@@ -272,18 +271,6 @@ const GanttChartPage = () => {
         >
           Загрузить тестовые данные
         </Button>
-        
-        <FormControlLabel
-          control={
-            <Switch
-              checked={autoDetectHierarchy}
-              onChange={(e) => setAutoDetectHierarchy(e.target.checked)}
-              disabled={isDataLoading}
-            />
-          }
-          label="Автоопределение иерархии"
-          sx={{ mb: 1 }}
-        />
         
         <FormControlLabel
           control={
