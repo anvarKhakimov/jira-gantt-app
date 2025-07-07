@@ -22,7 +22,9 @@ npm install
 ```
 
 3. Создайте файл `.env` на основе `.env-example` и настройте необходимые переменные окружения:
-   - `REACT_APP_JIRA_USERNAME` и `REACT_APP_JIRA_PASSWORD` - учетные данные для доступа к Jira
+   - Для авторизации используйте ОДИН из способов:
+     - `REACT_APP_JIRA_USERNAME` и `REACT_APP_JIRA_PASSWORD` - учетные данные для доступа к Jira
+     - `REACT_APP_JIRA_TOKEN` - токен для доступа к Jira API (Bearer токен)
    - `REACT_APP_JIRA_URL` - URL сервера Jira
    - `REACT_APP_PROXY_PORT` - порт для запуска прокси-сервера (по умолчанию 3001)
    - `REACT_APP_PROXY_HOST` - хост прокси-сервера (по умолчанию localhost)

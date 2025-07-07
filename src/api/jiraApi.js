@@ -6,16 +6,32 @@ const proxyHost = process.env.REACT_APP_PROXY_HOST;
 const jiraUrl = `http://${proxyHost}:${proxyPort}/api`;
 const username = process.env.REACT_APP_JIRA_USERNAME;
 const password = process.env.REACT_APP_JIRA_PASSWORD;
+const token = process.env.REACT_APP_JIRA_TOKEN;
 
-const auth = {
-  auth: { username, password },
-};
+// Настройка авторизации в зависимости от предоставленных учетных данных
+let authConfig = {};
+
+if (token) {
+  // Авторизация через Bearer токен
+  authConfig = {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  };
+} else if (username && password) {
+  // Авторизация через базовую аутентификацию (логин/пароль)
+  authConfig = {
+    auth: { username, password }
+  };
+} else {
+  console.warn('Не указаны учетные данные для Jira API (ни токен, ни логин/пароль)');
+}
 
 export const fetchJiraStatuses = async (projectKey) => {
   try {
     const response = await axios.get(
       `${jiraUrl}/rest/api/2/project/${projectKey}/statuses`,
-      auth
+      authConfig
     );
     return response.data;
   } catch (error) {
@@ -55,7 +71,7 @@ export const fetchJiraIssues = async (params) => {
   try {
     const response = await axios.get(
       `${jiraUrl}/rest/api/2/search?jql=${encodeURIComponent(jql)}&maxResults=${params.maxResults || 300}&expand=transitions,changelog,status`,
-      auth
+      authConfig
     );
     return response.data.issues;
   } catch (error) {
