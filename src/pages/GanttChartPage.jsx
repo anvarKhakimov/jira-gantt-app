@@ -1,17 +1,18 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { TextField, Button, Box, Typography, CircularProgress, Paper, FormControlLabel, Switch } from '@mui/material';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { Button, Box, Typography, CircularProgress, Paper } from '@mui/material';
 import { fetchJiraIssues, fetchJiraStatuses } from '../api/jiraApi';
 import { processJiraIssue } from '../utils/jiraDataProcessor';
-import { buildIssueHierarchy, determineMainIssue } from '../utils/issueHierarchyBuilder';
+import { buildIssueHierarchy } from '../utils/issueHierarchyBuilder';
 import { convertToGanttFormat, filterTasksByStatuses, createTestGanttData } from '../utils/ganttFormatter';
 import CollapsibleJSON from '../components/CollapsibleJSON';
 import StatusFilter from '../components/StatusFilter';
 import GanttChart from '../components/GanttChart';
 import OptimizedJiraData from '../components/OptimizedJiraData';
+import JiraKeyInput from '../components/JiraKeyInput';
 
 const GanttChartPage = () => {
   // Состояния
-  const [inputValue, setInputValue] = useState('PORTFOLIO-36962');
+  const [inputValue, setInputValue] = useState('');
   const [mainIssueKey, setMainIssueKey] = useState('');
   const [processedIssues, setProcessedIssues] = useState([]);
   const [issueHierarchy, setIssueHierarchy] = useState(null);
@@ -21,6 +22,9 @@ const GanttChartPage = () => {
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [isStatusesLoading, setIsStatusesLoading] = useState(false);
   const [showHierarchy, setShowHierarchy] = useState(true);
+  
+  // Ref для доступа к методам JiraKeyInput
+  const jiraKeyInputRef = useRef(null);
 
   // Загрузка данных из Jira
   const fetchData = useCallback(async (issueKey) => {
@@ -35,13 +39,9 @@ const GanttChartPage = () => {
                   "R&D :: Blocker", "DATA :: Analytics"]
       });
       
-      console.log('Исходные данные из Jira:', issues);
-      
       // Обрабатываем каждую задачу
       const processed = issues.map(issue => processJiraIssue(issue, issues));
       setProcessedIssues(processed);
-      
-      console.log('Обработанные задачи:', processed);
       
       // Определяем основную задачу, если не указана явно
       const mainKey = issueKey; // Всегда используем введенный ключ как главную задачу
@@ -51,13 +51,9 @@ const GanttChartPage = () => {
       const hierarchy = buildIssueHierarchy(processed);
       setIssueHierarchy(hierarchy);
       
-      console.log('Иерархия задач (без циклов):', JSON.parse(JSON.stringify(hierarchy)));
-      
       // Преобразуем в формат для диаграммы Ганта
       const ganttData = convertToGanttFormat(processed, hierarchy);
       setGanttTasks(ganttData);
-      
-      console.log('Данные Гантта обновлены:', ganttData);
       
     } catch (error) {
       console.error('Ошибка при загрузке данных:', error);
@@ -104,10 +100,7 @@ const GanttChartPage = () => {
     try {
       const testData = createTestGanttData();
       
-      console.log('Тестовые данные:', testData);
-      
       if (!testData) {
-        console.error('Функция createTestGanttData вернула undefined');
         // Создаем минимальные тестовые данные
         const minimalTestData = {
           ganttTasks: [
@@ -134,7 +127,6 @@ const GanttChartPage = () => {
         setIssueHierarchy({ rootIssues: [{ key: 'TEST-100' }], allIssues: [{ key: 'TEST-100' }] });
         setMainIssueKey('TEST-100');
         
-        console.log('Загружены минимальные тестовые данные');
         return;
       }
       
@@ -179,7 +171,6 @@ const GanttChartPage = () => {
         
         setMainIssueKey('TEST-100');
         
-        console.log('Тестовые данные загружены');
       } else {
         console.error('Некорректный формат тестовых данных:', testData);
       }
@@ -217,24 +208,42 @@ const GanttChartPage = () => {
     ? filteredGanttTasks 
     : flattenTasks(filteredGanttTasks);
 
+  const handleInputChange = (value) => {
+    setInputValue(value);
+  };
+
+  // Функция для обработки клика на кнопку "Получить данные"
+  const handleFetchData = () => {
+    const key = inputValue.trim();
+    if (!key) return;
+    
+    // Загружаем данные
+    fetchData(key);
+
+    // Явно добавляем ключ в историю
+    if (jiraKeyInputRef.current) {
+      jiraKeyInputRef.current.addToHistory(key);
+    }
+  };
+
   return (
     <Box>
       <Typography variant="h4" gutterBottom>Диаграмма Гантта</Typography>
       
       <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
-        <TextField
-          label="Ключ задачи"
+        <JiraKeyInput
+          ref={jiraKeyInputRef}
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          sx={{ mr: 2, mb: 1 }}
+          onChange={handleInputChange}
+          onSubmit={(key) => fetchData(key)}
+          loading={isDataLoading || isStatusesLoading}
           disabled={isDataLoading || isStatusesLoading}
         />
-        
         <Button
           variant="contained"
-          onClick={() => fetchData(inputValue.trim())}
-          disabled={isDataLoading || isStatusesLoading}
-          sx={{ mr: 2, mb: 1 }}
+          onClick={handleFetchData}
+          disabled={isDataLoading || isStatusesLoading || !inputValue.trim()}
+          sx={{ ml: 2, mb: 1, height: 56 }}
         >
           {isDataLoading ? (
             <>
