@@ -117,7 +117,7 @@ const getQuarter = (month) => {
   return Math.floor(month / 3) + 1;
 };
 
-const GanttChart = ({ tasks: initialTasks, onTasksUpdate }) => {
+const GanttChart = ({ tasks: initialTasks, onTasksUpdate, showHierarchy, onHierarchyChange }) => {
   const [tasks, setTasks] = useState(initialTasks || []);
   const [hoveredTask, setHoveredTask] = useState(null);
   const [selectedView, setSelectedView] = useLocalStorage('ganttView', 'days'); // Используем localStorage
@@ -701,7 +701,7 @@ const GanttChart = ({ tasks: initialTasks, onTasksUpdate }) => {
       {/* <h2 className="text-xl font-bold mb-4">Диаграмма Гантта с этапами жизненного цикла</h2> */}
       
       {/* Переключатель представления и легенда */}
-      <div className="flex flex-wrap justify-between mb-4">
+      <div className="flex flex-wrap justify-between gap-6 mb-4">
         <div className="flex gap-4 flex-wrap">
           {Object.entries(statusColors).map(([status, color]) => (
             <div 
@@ -728,7 +728,30 @@ const GanttChart = ({ tasks: initialTasks, onTasksUpdate }) => {
         
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center">
-            <span className="mr-2 text-sm">Просмотр:</span>
+            <label className="flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={showHierarchy} 
+                onChange={(e) => onHierarchyChange(e.target.checked)}
+                className="mr-2"
+              />
+              <span className="text-sm">Показывать иерархию</span>
+            </label>
+          </div>
+          
+          <div className="flex items-center">
+            <label className="flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={sortByStartDate} 
+                onChange={() => setSortByStartDate(!sortByStartDate)}
+                className="mr-2"
+              />
+              <span className="text-sm">Сортировать по дате начала</span>
+            </label>
+          </div>
+          
+          <div className="flex items-center">
             <div className="flex border border-gray-300 rounded overflow-hidden">
               <button 
                 className={`px-3 py-1 text-sm ${selectedView === 'days' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
@@ -743,18 +766,6 @@ const GanttChart = ({ tasks: initialTasks, onTasksUpdate }) => {
                 Недели
               </button>
             </div>
-          </div>
-          
-          <div className="flex items-center">
-            <label className="flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                checked={sortByStartDate} 
-                onChange={() => setSortByStartDate(!sortByStartDate)}
-                className="mr-2"
-              />
-              <span className="text-sm">Сортировать по дате начала</span>
-            </label>
           </div>
         </div>
       </div>

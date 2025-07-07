@@ -275,23 +275,17 @@ const GanttChartPage = () => {
           Загрузить тестовые данные
         </Button>
         */}
-        
-        <FormControlLabel
-          control={
-            <Switch
-              checked={showHierarchy}
-              onChange={(e) => setShowHierarchy(e.target.checked)}
-            />
-          }
-          label="Показывать иерархию"
-        />
       </Box>
       
       {processedIssues.length > 0 && (
         <>
           {/* Отображение диаграммы Гантта */}
           <Box sx={{ mb: 4, mt: 4 }}>
-            <GanttChart tasks={tasksToDisplay} />
+            <GanttChart 
+              tasks={tasksToDisplay} 
+              showHierarchy={showHierarchy}
+              onHierarchyChange={setShowHierarchy}
+            />
           </Box>
           
           {/* Фильтр статусов */}
