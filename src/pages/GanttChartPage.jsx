@@ -227,113 +227,91 @@ const GanttChartPage = () => {
   };
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>Диаграмма Гантта</Typography>
-      
-      <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
-        <JiraKeyInput
-          ref={jiraKeyInputRef}
-          value={inputValue}
-          onChange={handleInputChange}
-          onSubmit={(key) => fetchData(key)}
-          loading={isDataLoading || isStatusesLoading}
-          disabled={isDataLoading || isStatusesLoading}
-        />
-        <Button
-          variant="contained"
-          onClick={handleFetchData}
-          disabled={isDataLoading || isStatusesLoading || !inputValue.trim()}
-          sx={{ ml: 2, mb: 1, height: 56 }}
-        >
-          {isDataLoading ? (
-            <>
-              <CircularProgress size={20} sx={{ mr: 1, color: 'inherit' }} />
-              Загрузка...
-            </>
-          ) : (
-            'Получить данные'
-          )}
-        </Button>
-        
-        {/* Кнопка "Получить статусы" скрыта
-        <Button
-          variant="contained"
-          onClick={() => fetchStatuses(inputValue.trim())}
-          disabled={isDataLoading || isStatusesLoading}
-          sx={{ mr: 2, mb: 1 }}
-        >
-          {isStatusesLoading ? (
-            <>
-              <CircularProgress size={20} sx={{ mr: 1, color: 'inherit' }} />
-              Загрузка...
-            </>
-          ) : (
-            'Получить статусы'
-          )}
-        </Button>
-        */}
-        
-        {/* Кнопка "Загрузить тестовые данные" скрыта
-        <Button
-          variant="outlined"
-          color="secondary"
-          onClick={loadTestData}
-          disabled={isDataLoading || isStatusesLoading}
-          sx={{ mr: 2, mb: 1 }}
-        >
-          Загрузить тестовые данные
-        </Button>
-        */}
-      </Box>
-      
-      {processedIssues.length > 0 && (
-        <>
-          {/* Отображение диаграммы Гантта */}
-          <Box sx={{ mb: 4, mt: 4 }}>
-            <GanttChart 
-              tasks={tasksToDisplay} 
-              showHierarchy={showHierarchy}
-              onHierarchyChange={setShowHierarchy}
+    <Box className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-md mb-8">
+        <div className="px-8 py-6 flex items-center gap-3">
+          <Typography variant="h4" component="h1" className="!font-semibold !text-gray-800 !tracking-tight" style={{fontFamily: 'inherit'}}>Jira Gantt Board</Typography>
+        </div>
+      </header>
+      {/* Main Content */}
+      <main className="px-8">
+        <Box className="bg-white rounded-xl shadow p-6 mb-8">
+          <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+            <JiraKeyInput
+              ref={jiraKeyInputRef}
+              value={inputValue}
+              onChange={handleInputChange}
+              onSubmit={(key) => fetchData(key)}
+              loading={isDataLoading || isStatusesLoading}
+              disabled={isDataLoading || isStatusesLoading}
             />
+            <Button
+              variant="contained"
+              onClick={handleFetchData}
+              disabled={isDataLoading || isStatusesLoading || !inputValue.trim()}
+              sx={{ ml: 2, mb: 1, height: 56 }}
+            >
+              {isDataLoading ? (
+                <>
+                  <CircularProgress size={20} sx={{ mr: 1, color: 'inherit' }} />
+                  Загрузка...
+                </>
+              ) : (
+                'Получить данные'
+              )}
+            </Button>
           </Box>
-          
-          {/* Фильтр статусов */}
-          {projectStatuses.length > 0 && (
-            <StatusFilter
-              issueTypes={projectStatuses}
-              selectedStatuses={selectedStatuses}
-              onStatusChange={handleStatusChange}
-            />
-          )}
-          
-          {/* Отображение данных в JSON формате */}
-          <Paper sx={{ p: 2, mb: 4 }}>
-            <Typography variant="h6" gutterBottom>Данные из Jira</Typography>
-            <CollapsibleJSON 
-              data={{ 
-                main_issue_key: mainIssueKey,
-                hierarchy: issueHierarchy,
-                processed_issues: processedIssues
-              }} 
-              title="Структура данных" 
-              defaultCollapsed={true} 
-            />
-            <CollapsibleJSON 
-              data={{ 
-                tasksToDisplay
-              }} 
-              title="Tasks to display" 
-              defaultCollapsed={true} 
-            />
-          </Paper>
-
-          {/* Оптимизированные данные */}
-          <OptimizedJiraData 
-            processedIssues={processedIssues}
-            hierarchy={issueHierarchy}
-          />
-        </>
-      )}
+        </Box>
+        {processedIssues.length > 0 && (
+          <>
+            {/* Диаграмма Ганта */}
+            <Box className="bg-white rounded-xl shadow p-6 mb-8">
+              <GanttChart 
+                tasks={tasksToDisplay} 
+                showHierarchy={showHierarchy}
+                onHierarchyChange={setShowHierarchy}
+              />
+            </Box>
+            {/* Фильтр статусов */}
+            {projectStatuses.length > 0 && (
+              <Box className="bg-white rounded-xl shadow p-6 mb-8">
+                <StatusFilter
+                  issueTypes={projectStatuses}
+                  selectedStatuses={selectedStatuses}
+                  onStatusChange={handleStatusChange}
+                />
+              </Box>
+            )}
+            {/* JSON и оптимизированные данные */}
+            <Box className="bg-white rounded-xl shadow p-6 mb-8">
+              <Typography variant="h6" gutterBottom>Данные из Jira</Typography>
+              <CollapsibleJSON 
+                data={{ 
+                  main_issue_key: mainIssueKey,
+                  hierarchy: issueHierarchy,
+                  processed_issues: processedIssues
+                }} 
+                title="Структура данных" 
+                defaultCollapsed={true} 
+              />
+              <CollapsibleJSON 
+                data={{ 
+                  tasksToDisplay
+                }} 
+                title="Tasks to display" 
+                defaultCollapsed={true} 
+              />
+            </Box>
+            <Box className="bg-white rounded-xl shadow p-6 mb-8">
+              <OptimizedJiraData 
+                processedIssues={processedIssues}
+                hierarchy={issueHierarchy}
+              />
+            </Box>
+          </>
+        )}
+      </main>
     </Box>
   );
 };
