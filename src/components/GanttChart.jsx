@@ -1,4 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
+
+// Получаем URL Jira из переменной окружения для формирования ссылок
+const JIRA_URL = process.env.REACT_APP_JIRA_URL || '';
+// Убираем trailing slash, если он есть
+const JIRA_BASE_URL = JIRA_URL.endsWith('/') ? JIRA_URL.slice(0, -1) : JIRA_URL;
 
 // Функция для генерации цветов на основе статусов
 const generateStatusColors = (statuses) => {
@@ -787,7 +793,7 @@ const GanttChart = ({ tasks: initialTasks, onTasksUpdate, showHierarchy, onHiera
             >
               {task.jiraId ? (
                 <a 
-                  href={`https://jira.example.com/browse/${task.jiraId}`} 
+                  href={`${JIRA_BASE_URL}/browse/${task.jiraId}`} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"
@@ -1144,7 +1150,7 @@ const GanttChart = ({ tasks: initialTasks, onTasksUpdate, showHierarchy, onHiera
               <div className="text-sm mb-1">
                 <span className="font-medium">ID: </span>
                 <a 
-                  href={`https://jira.example.com/browse/${tasks.find(t => t.id === hoveredTask)?.jiraId}`} 
+                  href={`${JIRA_BASE_URL}/browse/${tasks.find(t => t.id === hoveredTask)?.jiraId}`} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"
