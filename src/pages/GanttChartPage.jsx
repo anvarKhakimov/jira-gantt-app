@@ -246,6 +246,7 @@ const GanttChartPage = () => {
           )}
         </Button>
         
+        {/* Кнопка "Получить статусы" скрыта
         <Button
           variant="contained"
           onClick={() => fetchStatuses(inputValue.trim())}
@@ -261,7 +262,9 @@ const GanttChartPage = () => {
             'Получить статусы'
           )}
         </Button>
+        */}
         
+        {/* Кнопка "Загрузить тестовые данные" скрыта
         <Button
           variant="outlined"
           color="secondary"
@@ -271,6 +274,7 @@ const GanttChartPage = () => {
         >
           Загрузить тестовые данные
         </Button>
+        */}
         
         <FormControlLabel
           control={
