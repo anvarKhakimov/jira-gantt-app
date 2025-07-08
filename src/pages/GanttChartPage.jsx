@@ -44,14 +44,23 @@ const GanttChartPage = () => {
   const fetchData = useCallback(async (issueKey) => {
     setIsDataLoading(true);
     try {
-      // Получаем данные из Jira
-      const issues = await fetchJiraIssues({
+      // Получаем настройки из переменных окружения
+      const projectsString = process.env.REACT_APP_JIRA_PROJECTS;
+      const depth = parseInt(process.env.REACT_APP_JIRA_DEPTH || "2", 10);
+      
+      // Формируем параметры запроса
+      const fetchParams = {
         issueKey: issueKey,
-        depth: 2,
-        projects: ["R&D :: Портфель проектов", "R&D :: Мобильные приложения", 
-                  "R&D :: Development (HH)", "Маркетинг :: B2C", "Design", 
-                  "R&D :: Blocker", "DATA :: Analytics"]
-      });
+        depth: depth
+      };
+      
+      // Добавляем проекты только если они указаны в переменных окружения
+      if (projectsString && projectsString.trim()) {
+        fetchParams.projects = projectsString.split(',').map(p => p.trim());
+      }
+      
+      // Получаем данные из Jira
+      const issues = await fetchJiraIssues(fetchParams);
       
       // Обрабатываем каждую задачу
       const processed = issues.map(issue => processJiraIssue(issue, issues));

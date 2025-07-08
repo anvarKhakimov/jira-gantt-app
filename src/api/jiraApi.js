@@ -45,17 +45,24 @@ export const fetchJiraIssues = async (params) => {
   
   if (params.issueKey) {
     // Запрос по конкретной задаче и её связям
-    jql = `
+    const baseQuery = `
       (
         issue = ${params.issueKey}
         OR issueFunction in linkedIssuesOfRecursiveLimited("issue = ${params.issueKey}", ${params.depth || 2}, "includes")
-      )
-      AND project in (${params.projects.map(p => `"${p}"`).join(', ')})
+      )`;
+    
+    // Добавляем фильтр по проектам только если проекты указаны
+    const projectFilter = params.projects && params.projects.length > 0 
+      ? ` AND project in (${params.projects.map(p => `"${p}"`).join(', ')})`
+      : '';
+    
+    const blockerQuery = `
       OR issueFunction in linkedIssuesOf(
         "issue = ${params.issueKey} OR issueFunction in linkedIssuesOfRecursiveLimited('issue = ${params.issueKey}', ${params.depth || 2}, 'includes')",
         "blocked by"
-      )
-    `;
+      )`;
+    
+    jql = baseQuery + projectFilter + blockerQuery;
   } else if (params.jql) {
     // Произвольный JQL запрос
     jql = params.jql;
