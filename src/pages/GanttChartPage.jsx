@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Button, Box, Typography, CircularProgress, Paper } from '@mui/material';
+import { useSearchParams } from 'react-router-dom';
 import { fetchJiraIssues, fetchJiraStatuses } from '../api/jiraApi';
 import { processJiraIssue } from '../utils/jiraDataProcessor';
 import { buildIssueHierarchy } from '../utils/issueHierarchyBuilder';
@@ -11,6 +12,9 @@ import OptimizedJiraData from '../components/OptimizedJiraData';
 import JiraKeyInput from '../components/JiraKeyInput';
 
 const GanttChartPage = () => {
+  // URL параметры
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   // Состояния
   const [inputValue, setInputValue] = useState('');
   const [mainIssueKey, setMainIssueKey] = useState('');
@@ -25,6 +29,16 @@ const GanttChartPage = () => {
   
   // Ref для доступа к методам JiraKeyInput
   const jiraKeyInputRef = useRef(null);
+
+  // Проверяем URL параметр key при загрузке страницы
+  useEffect(() => {
+    const keyParam = searchParams.get('key');
+    if (keyParam) {
+      setInputValue(keyParam);
+      // Автоматически загружаем данные
+      fetchData(keyParam);
+    }
+  }, []); // Выполняется только при монтировании
 
   // Загрузка данных из Jira
   const fetchData = useCallback(async (issueKey) => {
@@ -55,12 +69,15 @@ const GanttChartPage = () => {
       const ganttData = convertToGanttFormat(processed, hierarchy);
       setGanttTasks(ganttData);
       
+      // Обновляем URL параметр при успешной загрузке
+      setSearchParams({ key: issueKey });
+      
     } catch (error) {
       console.error('Ошибка при загрузке данных:', error);
     } finally {
       setIsDataLoading(false);
     }
-  }, []);
+  }, [setSearchParams]);
 
   // Загрузка статусов из Jira
   const fetchStatuses = useCallback(async (issueKey) => {
