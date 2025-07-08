@@ -30,18 +30,13 @@ const GanttChartPage = () => {
   // Ref для доступа к методам JiraKeyInput
   const jiraKeyInputRef = useRef(null);
 
-  // Проверяем URL параметр key при загрузке страницы
-  useEffect(() => {
-    const keyParam = searchParams.get('key');
-    if (keyParam) {
-      setInputValue(keyParam);
-      // Автоматически загружаем данные
-      fetchData(keyParam);
-    }
-  }, []); // Выполняется только при монтировании
+  // Новый ref для отслеживания последнего загруженного ключа
+  const lastFetchedKeyRef = useRef(null);
 
   // Загрузка данных из Jira
   const fetchData = useCallback(async (issueKey) => {
+    // Сохраняем текущий ключ как последний загруженный (до сетевых запросов, чтобы избежать гонок)
+    lastFetchedKeyRef.current = issueKey;
     setIsDataLoading(true);
     try {
       // Получаем настройки из переменных окружения
@@ -87,6 +82,18 @@ const GanttChartPage = () => {
       setIsDataLoading(false);
     }
   }, [setSearchParams]);
+
+  // Проверяем URL параметр key при загрузке страницы и при изменении URL
+  useEffect(() => {
+    const keyParam = searchParams.get('key');
+    if (keyParam && keyParam.trim() !== '' && keyParam !== lastFetchedKeyRef.current) {
+      // Обновляем поле ввода, чтобы показать пользователю текущий ключ из URL
+      setInputValue(keyParam);
+      // Загружаем данные для нового ключа
+      fetchData(keyParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Загрузка статусов из Jira
   const fetchStatuses = useCallback(async (issueKey) => {
